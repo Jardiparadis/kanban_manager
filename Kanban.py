@@ -25,22 +25,23 @@ TASK_LATE_BACKGROUND_COLOR = pygame.Color(241, 160, 160)
 class Kanban:
 
     def __init__(self):
-        default_task = Task("Title", "desc", "creator", "assignee", datetime.now(), theoric_completion_date=datetime(year=2010, day=20, month=2))
+        default_task = Task("Title", "desc", "creator", "assignee", datetime.now(),
+                            theoric_completion_date=datetime(year=2010, day=20, month=2))
         default_task2 = Task("Title2", "desc2", "creator2", "assignee2", datetime.now())
         default_task3 = Task("Title3", "desc3", "creator3", "assignee3", datetime.now())
         default_task4 = Task("Title4", "desc4", "creator4", "assignee4", datetime.now())
-        
+
         self.default_columns = [
             Column("Open", [default_task], pygame.Color(166, 237, 166), pygame.Color(217, 255, 211)),
             Column("Develop", [default_task2], pygame.Color(237, 193, 166), pygame.Color(255, 233, 211)),
             Column("Close", [default_task3, default_task4], pygame.Color(237, 166, 166), pygame.Color(255, 211, 211))
         ]
-     
+
         self.screen = None
         self.column_left_start_pos = 20
         self.column_top_start_pos = 20
         self.tasks_rect: list[tuple[pygame.Rect, Task]] = []
-        self.tasks = [] # list of ALL tasks
+        self.tasks = []  # list of ALL tasks
         self.moving_task_index = None
         self.old_column_index = None
 
@@ -55,7 +56,7 @@ class Kanban:
             )
         )
         self.screen.blit(rendered_text, rendered_text_rect)
- 
+
     def list_all_tasks(self):
         for column in self.default_columns:
             for task in column.task_list:
@@ -70,7 +71,8 @@ class Kanban:
             pygame.draw.rect(self.screen, column.header_color, column_header_rect)
             column_body_height = len(column.task_list) * (TASK_HEIGHT + TASK_TOP_PADDING) + COLUMN_BOTTOM_PADDING
             col_rect = pygame.draw.rect(self.screen, column.body_color,
-                             pygame.Rect(left_pos, top_pos + COLUMN_HEADER_HEIGHT, COLUMN_WIDTH, column_body_height))
+                                        pygame.Rect(left_pos, top_pos + COLUMN_HEADER_HEIGHT, COLUMN_WIDTH,
+                                                    column_body_height))
             column.rect = col_rect
             self.display_text_in_rectangle(column_header_rect, column.title, COLUMN_HEADER_FONT_SIZE)
             self.render_tasks(column.task_list, left_pos, top_pos + COLUMN_HEADER_HEIGHT)
@@ -94,7 +96,8 @@ class Kanban:
         popup_content = ("Description: " + task_rect[1].description +
                          "\nAssignee: " + task_rect[1].assignee +
                          "\nDate created: " + task_rect[1].creation_date.strftime("%d/%m/%Y") +
-                         "\nDate due: " + task_rect[1].theoric_completion_date +
+                         "\nDate due: " + (task_rect[1].theoric_completion_date.strftime("%d/%m/%Y")
+                                           if task_rect[1].theoric_completion_date is not None else "") +
                          "\nCreator: " + task_rect[1].creator)
         messagebox.showinfo(task_rect[1].title, popup_content)
 
@@ -103,8 +106,8 @@ class Kanban:
         # clic gauche
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                self.take_drag_and_drop(event) 
-        # relachement du clic
+                self.take_drag_and_drop(event)
+                # relachement du clic
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 self.release_drag_and_drop(event)
@@ -118,23 +121,23 @@ class Kanban:
             self.hold_drag_and_drop(event)
 
     def take_drag_and_drop(self, event):
-        self.list_all_tasks() # fill self.tasks with all task
+        self.list_all_tasks()  # fill self.tasks with all task
         for num, task in enumerate(self.tasks):
             if task.rect.collidepoint(event.pos):
                 self.moving_task_index = num
-                task.moving = True  
+                task.moving = True
 
     def hold_drag_and_drop(self, event):
         if self.moving_task_index is not None:
             self.tasks[self.moving_task_index].rect.move_ip(event.rel)
             self.print_moving_task()
 
-    def release_drag_and_drop(self,event):
+    def release_drag_and_drop(self, event):
         if self.moving_task_index:
             for column in self.default_columns:
                 if column.rect.collidepoint(event.pos):
                     # On supprime notre tache de l'ancienne colonne
-                    old_column_index =  self.get_column_index(self.tasks[self.moving_task_index])
+                    old_column_index = self.get_column_index(self.tasks[self.moving_task_index])
                     self.default_columns[old_column_index].task_list.remove(self.tasks[self.moving_task_index])
                     # Et on la rajoute a la nouvelle
                     column.task_list.append(self.tasks[self.moving_task_index])
@@ -144,6 +147,7 @@ class Kanban:
     """
     Get the column index of a task
     """
+
     def get_column_index(self, task):
         for index, col in enumerate(self.default_columns):
             if task in col.task_list:
@@ -168,7 +172,7 @@ class Kanban:
         pygame.init()
         self.screen = pygame.display.set_mode((1280, 720))
         clock = pygame.time.Clock()
-        
+
         while True:
             for event in pygame.event.get():
                 self.handle_mouse_event(event)
