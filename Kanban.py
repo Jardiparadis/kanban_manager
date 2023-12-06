@@ -1,5 +1,7 @@
+import datetime
 import pygame
 from Column import Column
+from Task import Task
 
 COLUMN_WIDTH = 200
 COLUMN_HEADER_HEIGHT = 50
@@ -14,16 +16,19 @@ TASK_FONT_SIZE = 22
 TASK_LEFT_PADDING = 10
 TASK_TOP_PADDING = 10
 
+
 class Kanban:
     def __init__(self):
+        task = Task("Title", "description", "moi", "lui", datetime.datetime.now())
         self.default_columns = [
-            Column("Open", ["Create column", "Create task"], pygame.Color(166, 237, 166), pygame.Color(217, 255, 211)),
-            Column("Develop", ["aa"], pygame.Color(237, 193, 166), pygame.Color(255, 233, 211)),
-            Column("Close", ["c'est ok", "oui"], pygame.Color(237, 166, 166), pygame.Color(255, 211, 211))
+            Column("Open", [task], pygame.Color(166, 237, 166), pygame.Color(217, 255, 211)),
+            Column("Develop", [], pygame.Color(237, 193, 166), pygame.Color(255, 233, 211)),
+            Column("Close", [], pygame.Color(237, 166, 166), pygame.Color(255, 211, 211))
         ]
         self.screen = None
         self.column_left_start_pos = 20
         self.column_top_start_pos = 20
+        self.tasks_rect: list[tuple[pygame.Rect, Task]] = []
 
     def render_columns(self):
         left_pos = self.column_left_start_pos
@@ -45,10 +50,11 @@ class Kanban:
             task_rect_top_pos = top_pos + TASK_TOP_PADDING
             task_rect = pygame.Rect(task_rect_left_pos, task_rect_top_pos, TASK_WIDTH, TASK_HEIGHT)
             pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), task_rect)
+            self.tasks_rect.append((task_rect, task))
 
             # Text
             font = pygame.font.SysFont(None, TASK_FONT_SIZE)
-            task_text = font.render(task, True, pygame.Color(39, 39, 39))
+            task_text = font.render(task.title, True, pygame.Color(39, 39, 39))
             task_text_width, task_text_height = task_text.get_size()
             task_text_rect = task_text.get_rect(
                 topleft=(
@@ -67,7 +73,13 @@ class Kanban:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return pygame.quit()
+                if event.type == pygame.MOUSEBUTTONUP:
+                    pos = pygame.mouse.get_pos()
+                    for task_rect in self.tasks_rect:
+                        if pygame.Rect.collidepoint(task_rect[0], pos):
+                            print(task_rect[1])
 
+            self.tasks_rect.clear()
             self.screen.fill(pygame.Color(241, 241, 241))
             self.render_columns()
 
