@@ -2,12 +2,16 @@ import datetime
 import pygame
 from Column import Column
 from Task import Task
+from tkinter import *
+from tkinter import messagebox
+
 
 COLUMN_WIDTH = 200
 COLUMN_HEADER_HEIGHT = 50
 COLUMN_BODY_HEIGHT = 400
 COLUMN_SPACES = 40
 COLUMN_HEADER_FONT_SIZE = 24
+COLUMN_BOTTOM_PADDING = 20
 
 TASK_WIDTH = 180
 TASK_HEIGHT = 80
@@ -19,9 +23,9 @@ TASK_TOP_PADDING = 10
 
 class Kanban:
     def __init__(self):
-        task = Task("Title", "description", "moi", "lui", datetime.datetime.now())
+        task = Task("Title task", "Description task", "moi", "lui", datetime.datetime.now())
         self.default_columns = [
-            Column("Open", [task], pygame.Color(166, 237, 166), pygame.Color(217, 255, 211)),
+            Column("Open", [task, task], pygame.Color(166, 237, 166), pygame.Color(217, 255, 211)),
             Column("Develop", [], pygame.Color(237, 193, 166), pygame.Color(255, 233, 211)),
             Column("Close", [], pygame.Color(237, 166, 166), pygame.Color(255, 211, 211))
         ]
@@ -36,8 +40,9 @@ class Kanban:
         for column in self.default_columns:
             pygame.draw.rect(self.screen, column.header_color,
                              pygame.Rect(left_pos, top_pos, COLUMN_WIDTH, COLUMN_HEADER_HEIGHT))
+            column_body_height = len(column.task_list) * (TASK_HEIGHT + TASK_TOP_PADDING) + COLUMN_BOTTOM_PADDING
             pygame.draw.rect(self.screen, column.body_color,
-                             pygame.Rect(left_pos, top_pos + COLUMN_HEADER_HEIGHT, COLUMN_WIDTH, COLUMN_BODY_HEIGHT))
+                             pygame.Rect(left_pos, top_pos + COLUMN_HEADER_HEIGHT, COLUMN_WIDTH, column_body_height))
             font = pygame.font.SysFont(None, COLUMN_HEADER_FONT_SIZE)
             img = font.render(column.title, True, pygame.Color(39, 39, 39))
             self.screen.blit(img, (left_pos + 10, top_pos + 15))
@@ -77,7 +82,13 @@ class Kanban:
                     pos = pygame.mouse.get_pos()
                     for task_rect in self.tasks_rect:
                         if pygame.Rect.collidepoint(task_rect[0], pos):
-                            print(task_rect[1])
+                            Tk().wm_withdraw()  # to hide the main window
+                            popup_content = ("Description: " + task_rect[1].description +
+                                             "\nAssignee: " + task_rect[1].assignee +
+                                             "\nDate created: " + task_rect[1].creation_date.strftime("%d/%m/%Y") +
+                                             "\nDate due: " + task_rect[1].theoric_completion_date +
+                                             "\nCreator: " + task_rect[1].creator)
+                            messagebox.showinfo(task_rect[1].title, popup_content)
 
             self.tasks_rect.clear()
             self.screen.fill(pygame.Color(241, 241, 241))
