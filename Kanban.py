@@ -21,6 +21,7 @@ TASK_TOP_PADDING = 10
 
 
 class Kanban:
+
     def __init__(self):
 
         default_task = Task("Title", "desc", "creator", "assignee", datetime.datetime.now())
@@ -54,7 +55,6 @@ class Kanban:
         )
         self.screen.blit(rendered_text, rendered_text_rect)
  
-
     def list_all_tasks(self):
         for column in self.default_columns:
             for task in column.task_list:
@@ -86,7 +86,6 @@ class Kanban:
             top_pos += TASK_HEIGHT + TASK_SPACES
             if task.moving == False:
                 task.rect = task_rect
-
 
     def show_task_in_popup(self, task_rect):
         Tk().wm_withdraw()  # hide main TK window, we only want popup
@@ -153,6 +152,49 @@ class Kanban:
         if self.moving_task_index != None:
             pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), self.tasks[self.moving_task_index].rect)
 
+    """
+    Get the column index of a task
+    """
+    def get_column_index(self, task):
+        for index, col in enumerate(self.default_columns):
+            if task in col.task_list:
+                return index
+        return index
+
+    # Drag & Drop
+    def handleMouseEvent(self, event):
+        # clic gauche
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                self.list_all_tasks() # fill self.tasks with all task
+                for num, task in enumerate(self.tasks):
+                    if task.rect.collidepoint(event.pos):
+                        self.moving_task_index = num
+                        task.moving = True   
+
+        # relachement du clic
+        if event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:
+                for column in self.default_columns:
+                    if column.rect.collidepoint(event.pos):
+                        # On supprime notre tache de l'ancienne colonne
+                        old_column_index =  self.get_column_index(self.tasks[self.moving_task_index])
+                        self.default_columns[old_column_index].task_list.remove(self.tasks[self.moving_task_index])
+                        # Et on la rajoute a la nouvelle
+                        column.task_list.append(self.tasks[self.moving_task_index])
+                self.tasks[self.moving_task_index].moving = False
+                self.index_moving_task = None
+
+        # souris bouge
+        if event.type == pygame.MOUSEMOTION:
+            if self.moving_task_index != None:
+                self.tasks[self.moving_task_index].rect.move_ip(event.rel)
+                self.print_moving_task()
+
+    def print_moving_task(self):
+        if self.moving_task_index != None:
+            pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), self.tasks[self.moving_task_index].rect)
+
     def start_ui(self):
         pygame.init()
         self.screen = pygame.display.set_mode((1280, 720))
@@ -161,13 +203,10 @@ class Kanban:
         while True:
             for event in pygame.event.get():
                 self.handle_mouse_event(event)
-
                 if event.type == pygame.QUIT:
                     return pygame.quit()
 
-
             self.tasks_rect.clear()
-            
             self.screen.fill(pygame.Color(241, 241, 241))
             self.render_columns()
             self.print_moving_task()
