@@ -34,18 +34,28 @@ class Kanban:
         self.column_top_start_pos = 20
         self.tasks_rect: list[tuple[pygame.Rect, Task]] = []
 
+    def display_text_in_rectangle(self, rect_container: pygame.Rect, text, font_size):
+        font = pygame.font.SysFont(None, font_size)
+        rendered_text = font.render(text, True, pygame.Color(39, 39, 39))
+        rendered_text_width, rendered_text_height = rendered_text.get_size()
+        rendered_text_rect = rendered_text.get_rect(
+            topleft=(
+                rect_container.topleft[0] + (rect_container.size[0] / 2) - (rendered_text_width / 2),
+                (rect_container.topleft[1] + (rect_container.size[1] / 2) - (rendered_text_height / 2))
+            )
+        )
+        self.screen.blit(rendered_text, rendered_text_rect)
+
     def render_columns(self):
         left_pos = self.column_left_start_pos
         top_pos = self.column_top_start_pos
         for column in self.default_columns:
-            pygame.draw.rect(self.screen, column.header_color,
-                             pygame.Rect(left_pos, top_pos, COLUMN_WIDTH, COLUMN_HEADER_HEIGHT))
+            column_header_rect = pygame.Rect(left_pos, top_pos, COLUMN_WIDTH, COLUMN_HEADER_HEIGHT)
+            pygame.draw.rect(self.screen, column.header_color, column_header_rect)
             column_body_height = len(column.task_list) * (TASK_HEIGHT + TASK_TOP_PADDING) + COLUMN_BOTTOM_PADDING
             pygame.draw.rect(self.screen, column.body_color,
                              pygame.Rect(left_pos, top_pos + COLUMN_HEADER_HEIGHT, COLUMN_WIDTH, column_body_height))
-            font = pygame.font.SysFont(None, COLUMN_HEADER_FONT_SIZE)
-            img = font.render(column.title, True, pygame.Color(39, 39, 39))
-            self.screen.blit(img, (left_pos + 10, top_pos + 15))
+            self.display_text_in_rectangle(column_header_rect, column.title, COLUMN_HEADER_FONT_SIZE)
             self.render_tasks(column.task_list, left_pos, top_pos + COLUMN_HEADER_HEIGHT)
             left_pos += COLUMN_WIDTH + COLUMN_SPACES
 
@@ -56,18 +66,7 @@ class Kanban:
             task_rect = pygame.Rect(task_rect_left_pos, task_rect_top_pos, TASK_WIDTH, TASK_HEIGHT)
             pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), task_rect)
             self.tasks_rect.append((task_rect, task))
-
-            # Text
-            font = pygame.font.SysFont(None, TASK_FONT_SIZE)
-            task_text = font.render(task.title, True, pygame.Color(39, 39, 39))
-            task_text_width, task_text_height = task_text.get_size()
-            task_text_rect = task_text.get_rect(
-                topleft=(
-                    task_rect_left_pos + (task_rect.size[0] / 2) - (task_text_width / 2),
-                    (task_rect_top_pos + (task_rect.size[1] / 2) - (task_text_height / 2))
-                )
-            )
-            self.screen.blit(task_text, task_text_rect)
+            self.display_text_in_rectangle(task_rect, task.title, TASK_FONT_SIZE)
             top_pos += TASK_HEIGHT + TASK_SPACES
 
     def show_task_in_popup(self, task_rect):
