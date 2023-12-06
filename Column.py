@@ -8,3 +8,4 @@ class Column:
         self.task_list = task_list
         self.header_color = header_color
         self.body_color = body_color
+        self.rect = None
