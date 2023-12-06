@@ -38,10 +38,14 @@ class Kanban:
             Column("Close", ["c'est ok", "oui"], pygame.Color(237, 166, 166), pygame.Color(255, 211, 211))
         ]
         self.screen = None
-        self.column_left_start_pos = 20
-        self.column_top_start_pos = 20
-
-    def show_popup():
+        self.column_left_start_pos = 40
+        self.column_top_start_pos = 40
+    
+    task_instance = Task(title="Exemple", description="Description de l'exemple",
+                     creator="Créateur initial", assignee="Assigné initial",
+                     creation_date="Date de création initiale")
+    
+    def show_popup(self):
         popup = Tk()
         popup.title("Modifier les valeurs")
 
@@ -61,10 +65,6 @@ class Kanban:
         Label(popup, text="Assignee").grid(row=3, column=0)
         assignee_entry = Entry(popup)
         assignee_entry.grid(row=3, column=1)
-
-        Label(popup, text="Creation Date").grid(row=4, column=0)
-        creation_date_entry = Entry(popup)
-        creation_date_entry.grid(row=4, column=1)
 
         Label(popup, text="Theoric Completion Date").grid(row=5, column=0)
         theoric_completion_date_entry = Entry(popup)
@@ -92,25 +92,28 @@ class Kanban:
             new_description = description_entry.get()
             new_creator = creator_entry.get()
             new_assignee = assignee_entry.get()
-            new_creation_date = creation_date_entry.get()
+            new_creation_date = datetime.datetime.now()
             new_theoric_completion_date = theoric_completion_date_entry.get()
             new_completion_date = completion_date_entry.get()
             new_label = label_entry.get()
             new_priority = priority_entry.get()
             new_status = status_entry.get()
-
-            # Mettre à jour l'instance de Task avec les nouvelles valeurs
-            # task_instance.update_task(new_title, new_description, new_creator, new_assignee,
-            #                     new_creation_date, new_theoric_completion_date,
-            #                     new_completion_date, new_label, new_priority, new_status)
             
+            #Mettre à jour l'instance de Task avec les nouvelles valeurs
+            self.task_instance.update_task(new_title, new_description, new_creator, new_assignee,
+                                new_creation_date, new_theoric_completion_date,
+                                 new_completion_date, new_label, new_priority, new_status)
+            
+            print(self.task_instance.title)
+            print(self.task_instance.description)
+
             popup.destroy()  # Fermez le popup après avoir enregistré les modifications
 
             # Ajoutez un bouton pour enregistrer les modifications
-            save_button = Button(popup, text="Enregistrer", command=save_changes)
-            save_button.grid(row=10, column=0, columnspan=2)
+        save_button = Button(popup, text="Enregistrer", command=save_changes)
+        save_button.grid(row=10, column=0, columnspan=2)
 
-            popup.mainloop()
+        popup.mainloop()
 
     def render_columns(self):
         left_pos = self.column_left_start_pos
@@ -145,7 +148,8 @@ class Kanban:
             )
             self.screen.blit(task_text, task_text_rect)
             top_pos += TASK_HEIGHT + TASK_SPACES
-
+    
+    
     def start_ui(self):
         pygame.init()
         self.screen = pygame.display.set_mode((1280, 720))
@@ -158,12 +162,13 @@ class Kanban:
                 
             self.screen.fill(pygame.Color(241, 241, 241))
             self.render_columns()
+
             # Ajoutez un bouton
-            button_rect = pygame.Rect(20, 20, 150, 30)
+            button_rect = pygame.Rect(30, 10, 150, 30)
             pygame.draw.rect(self.screen, pygame.Color(0, 128, 255), button_rect)
             font = pygame.font.SysFont(None, 24)
             button_text = font.render("Modifier Valeurs", True, pygame.Color(255, 255, 255))
-            self.screen.blit(button_text, (30, 507))
+            self.screen.blit(button_text, (40, 10))
 
             # Vérifiez si le bouton est cliqué
             mouse_pos = pygame.mouse.get_pos()
