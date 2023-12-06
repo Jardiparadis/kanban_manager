@@ -5,6 +5,7 @@ from Task import Task
 from tkinter import *
 from tkinter import messagebox
 
+# Constants
 COLUMN_WIDTH = 200
 COLUMN_HEADER_HEIGHT = 50
 COLUMN_BODY_HEIGHT = 400
@@ -43,7 +44,8 @@ class Kanban:
         self.moving_task_index = None
         self.old_column_index = None
 
-    def display_text_in_rectangle(self, rect_container: pygame.Rect, text, font_size):
+    # Display text centered in rectangle
+    def display_text_in_rectangle(self, rect_container: pygame.Rect, text: str, font_size: int):
         font = pygame.font.SysFont(None, font_size)
         rendered_text = font.render(text, True, pygame.Color(39, 39, 39))
         rendered_text_width, rendered_text_height = rendered_text.get_size()
@@ -54,13 +56,15 @@ class Kanban:
             )
         )
         self.screen.blit(rendered_text, rendered_text_rect)
- 
+
+    # Get all tasks
     def list_all_tasks(self):
         for column in self.default_columns:
             for task in column.task_list:
                 self.tasks.append(task)
         return self.tasks
 
+    # Render columns
     def render_columns(self):
         left_pos = self.column_left_start_pos
         top_pos = self.column_top_start_pos
@@ -75,6 +79,7 @@ class Kanban:
             self.render_tasks(column.task_list, left_pos, top_pos + COLUMN_HEADER_HEIGHT)
             left_pos += COLUMN_WIDTH + COLUMN_SPACES
 
+    # Render tasks in column
     def render_tasks(self, tasks, left_pos, top_pos):
         for task in tasks:
             task_rect_left_pos = left_pos + TASK_LEFT_PADDING
@@ -87,6 +92,7 @@ class Kanban:
             if task.moving == False:
                 task.rect = task_rect
 
+    # Show task details in a popup
     def show_task_in_popup(self, task_rect):
         Tk().wm_withdraw()  # hide main TK window, we only want popup
         popup_content = ("Description: " + task_rect[1].description +
@@ -152,6 +158,7 @@ class Kanban:
         if self.moving_task_index is not None:
             pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), self.tasks[self.moving_task_index].rect)
 
+    # main loop
     def start_ui(self):
         pygame.init()
         self.screen = pygame.display.set_mode((1280, 720))
