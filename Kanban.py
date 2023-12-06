@@ -4,12 +4,14 @@ from enum import Enum
 from tkinter import *
 from Task import *
 import datetime
+from tkinter import messagebox
 
 COLUMN_WIDTH = 200
 COLUMN_HEADER_HEIGHT = 50
 COLUMN_BODY_HEIGHT = 400
 COLUMN_SPACES = 40
 COLUMN_HEADER_FONT_SIZE = 24
+COLUMN_BOTTOM_PADDING = 20
 
 TASK_WIDTH = 180
 TASK_HEIGHT = 80
@@ -32,100 +34,110 @@ class Status(Enum):
 
 class Kanban:
     def __init__(self):
+        task = Task("Title task 1", "Description task", "moi", "lui", datetime.datetime.now())
         self.default_columns = [
-            Column("Open", ["Create column", "Create task"], pygame.Color(166, 237, 166), pygame.Color(217, 255, 211)),
-            Column("Develop", ["aa"], pygame.Color(237, 193, 166), pygame.Color(255, 233, 211)),
-            Column("Close", ["c'est ok", "oui"], pygame.Color(237, 166, 166), pygame.Color(255, 211, 211))
+            Column("Open", [task, task], pygame.Color(166, 237, 166), pygame.Color(217, 255, 211)),
+            Column("Develop", [], pygame.Color(237, 193, 166), pygame.Color(255, 233, 211)),
+            Column("Close", [], pygame.Color(237, 166, 166), pygame.Color(255, 211, 211))
         ]
         self.screen = None
         self.column_left_start_pos = 40
         self.column_top_start_pos = 40
-    
-    task_instance = Task(title="Exemple", description="Description de l'exemple",
-                     creator="Créateur initial", assignee="Assigné initial",
-                     creation_date="Date de création initiale")
-    
+        self.tasks_rect: list[tuple[pygame.Rect, Task]] = []
+        self.popup = None
+
+    def save_changes(self, title, description, creator, assignee,
+                 theoric_completion_date, completion_date, label):
+        new_task = Task(
+        title=title,
+        description=description,
+        creator=creator,
+        assignee=assignee,
+        creation_date=datetime.datetime.now(),
+        theoric_completion_date=theoric_completion_date,
+        completion_date=completion_date,
+        label=label
+    )
+
+        # Choose the column to add the new task (e.g., Open column)
+        self.default_columns[0].task_list.append(new_task)
+
+        # Close the popup after saving changes
+        self.popup.destroy()
+
     def show_popup(self):
-        popup = Tk()
-        popup.title("Modifier les valeurs")
+        self.popup = Tk()
+        self.popup.title("Modifier les valeurs")
 
         # Ajoutez des widgets pour chaque paramètre de la classe Task
-        Label(popup, text="Titre").grid(row=0, column=0)
-        title_entry = Entry(popup)
+        Label(self.popup, text="Titre").grid(row=0, column=0)
+        title_entry = Entry(self.popup)
         title_entry.grid(row=0, column=1)
 
-        Label(popup, text="Description").grid(row=1, column=0)
-        description_entry = Entry(popup)
+        Label(self.popup, text="Description").grid(row=1, column=0)
+        description_entry = Entry(self.popup)
         description_entry.grid(row=1, column=1)
 
-        Label(popup, text="Creator").grid(row=2, column=0)
-        creator_entry = Entry(popup)
+        Label(self.popup, text="Creator").grid(row=2, column=0)
+        creator_entry = Entry(self.popup)
         creator_entry.grid(row=2, column=1)
 
-        Label(popup, text="Assignee").grid(row=3, column=0)
-        assignee_entry = Entry(popup)
+        Label(self.popup, text="Assignee").grid(row=3, column=0)
+        assignee_entry = Entry(self.popup)
         assignee_entry.grid(row=3, column=1)
 
-        Label(popup, text="Theoric Completion Date").grid(row=5, column=0)
-        theoric_completion_date_entry = Entry(popup)
-        theoric_completion_date_entry.grid(row=5, column=1)
+        Label(self.popup, text="Theoric Completion Date").grid(row=4, column=0)
+        theoric_completion_date_entry = Entry(self.popup)
+        theoric_completion_date_entry.grid(row=4, column=1)
 
-        Label(popup, text="Completion date").grid(row=6, column=0)
-        completion_date_entry = Entry(popup)
-        completion_date_entry.grid(row=6, column=1)
+        Label(self.popup, text="Completion date").grid(row=5, column=0)
+        completion_date_entry = Entry(self.popup)
+        completion_date_entry.grid(row=5, column=1)
 
-        Label(popup, text="Label").grid(row=7, column=0)
-        label_entry = Entry(popup)
-        label_entry.grid(row=7, column=1)
-
-        Label(popup, text="Priority").grid(row=8, column=0)
-        priority_entry = Entry(popup)
-        priority_entry.grid(row=8, column=1)
-
-        Label(popup, text="Status").grid(row=9, column=0)
-        status_entry = Entry(popup)
-        status_entry.grid(row=9, column=1)
+        Label(self.popup, text="Label").grid(row=6, column=0)
+        label_entry = Entry(self.popup)
+        label_entry.grid(row=6, column=1)
 
         def save_changes():
-            # Récupérez les valeurs saisies et mettez à jour votre instance de Task
+        # Récupérez les valeurs saisies et appelez la méthode save_changes de Kanban
             new_title = title_entry.get()
             new_description = description_entry.get()
             new_creator = creator_entry.get()
             new_assignee = assignee_entry.get()
-            new_creation_date = datetime.datetime.now()
             new_theoric_completion_date = theoric_completion_date_entry.get()
             new_completion_date = completion_date_entry.get()
             new_label = label_entry.get()
-            new_priority = priority_entry.get()
-            new_status = status_entry.get()
-            
-            #Mettre à jour l'instance de Task avec les nouvelles valeurs
-            self.task_instance.update_task(new_title, new_description, new_creator, new_assignee,
-                                new_creation_date, new_theoric_completion_date,
-                                 new_completion_date, new_label, new_priority, new_status)
-            
-            print(self.task_instance.title)
-            print(self.task_instance.description)
 
-            popup.destroy()  # Fermez le popup après avoir enregistré les modifications
+            self.save_changes(new_title, new_description, new_creator, new_assignee,
+                        new_theoric_completion_date, new_completion_date, new_label)
 
-            # Ajoutez un bouton pour enregistrer les modifications
-        save_button = Button(popup, text="Enregistrer", command=save_changes)
+        save_button = Button(self.popup, text="Enregistrer", command=save_changes)
         save_button.grid(row=10, column=0, columnspan=2)
 
-        popup.mainloop()
+        self.popup.mainloop()
 
+    def display_text_in_rectangle(self, rect_container: pygame.Rect, text, font_size):
+        font = pygame.font.SysFont(None, font_size)
+        rendered_text = font.render(text, True, pygame.Color(39, 39, 39))
+        rendered_text_width, rendered_text_height = rendered_text.get_size()
+        rendered_text_rect = rendered_text.get_rect(
+            topleft=(
+                rect_container.topleft[0] + (rect_container.size[0] / 2) - (rendered_text_width / 2),
+                (rect_container.topleft[1] + (rect_container.size[1] / 2) - (rendered_text_height / 2))
+            )
+        )
+        self.screen.blit(rendered_text, rendered_text_rect)
+    
     def render_columns(self):
         left_pos = self.column_left_start_pos
         top_pos = self.column_top_start_pos
         for column in self.default_columns:
-            pygame.draw.rect(self.screen, column.header_color,
-                             pygame.Rect(left_pos, top_pos, COLUMN_WIDTH, COLUMN_HEADER_HEIGHT))
+            column_header_rect = pygame.Rect(left_pos, top_pos, COLUMN_WIDTH, COLUMN_HEADER_HEIGHT)
+            pygame.draw.rect(self.screen, column.header_color, column_header_rect)
+            column_body_height = len(column.task_list) * (TASK_HEIGHT + TASK_TOP_PADDING) + COLUMN_BOTTOM_PADDING
             pygame.draw.rect(self.screen, column.body_color,
-                             pygame.Rect(left_pos, top_pos + COLUMN_HEADER_HEIGHT, COLUMN_WIDTH, COLUMN_BODY_HEIGHT))
-            font = pygame.font.SysFont(None, COLUMN_HEADER_FONT_SIZE)
-            img = font.render(column.title, True, pygame.Color(39, 39, 39))
-            self.screen.blit(img, (left_pos + 10, top_pos + 15))
+                             pygame.Rect(left_pos, top_pos + COLUMN_HEADER_HEIGHT, COLUMN_WIDTH, column_body_height))
+            self.display_text_in_rectangle(column_header_rect, column.title, COLUMN_HEADER_FONT_SIZE)
             self.render_tasks(column.task_list, left_pos, top_pos + COLUMN_HEADER_HEIGHT)
             left_pos += COLUMN_WIDTH + COLUMN_SPACES
 
@@ -135,21 +147,20 @@ class Kanban:
             task_rect_top_pos = top_pos + TASK_TOP_PADDING
             task_rect = pygame.Rect(task_rect_left_pos, task_rect_top_pos, TASK_WIDTH, TASK_HEIGHT)
             pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), task_rect)
-
-            # Text
-            font = pygame.font.SysFont(None, TASK_FONT_SIZE)
-            task_text = font.render(task, True, pygame.Color(39, 39, 39))
-            task_text_width, task_text_height = task_text.get_size()
-            task_text_rect = task_text.get_rect(
-                topleft=(
-                    task_rect_left_pos + (task_rect.size[0] / 2) - (task_text_width / 2),
-                    (task_rect_top_pos + (task_rect.size[1] / 2) - (task_text_height / 2))
-                )
-            )
-            self.screen.blit(task_text, task_text_rect)
+            self.tasks_rect.append((task_rect, task))
+            self.display_text_in_rectangle(task_rect, task.title, TASK_FONT_SIZE)
             top_pos += TASK_HEIGHT + TASK_SPACES
     
     
+    def show_task_in_popup(self, task_rect):
+        Tk().wm_withdraw()  # hide main TK window, we only want popup
+        popup_content = ("Description: " + task_rect[1].description +
+                         "\nAssignee: " + task_rect[1].assignee +
+                         "\nDate created: " + task_rect[1].creation_date.strftime("%d/%m/%Y") +
+                         "\nDate due: " + task_rect[1].theoric_completion_date +
+                         "\nCreator: " + task_rect[1].creator)
+        messagebox.showinfo(task_rect[1].title, popup_content)
+
     def start_ui(self):
         pygame.init()
         self.screen = pygame.display.set_mode((1280, 720))
@@ -159,7 +170,13 @@ class Kanban:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return pygame.quit()
-                
+                if event.type == pygame.MOUSEBUTTONUP:
+                    pos = pygame.mouse.get_pos()
+                    for task_rect in self.tasks_rect:
+                        if pygame.Rect.collidepoint(task_rect[0], pos):
+                            self.show_task_in_popup(task_rect)
+
+            self.tasks_rect.clear()               
             self.screen.fill(pygame.Color(241, 241, 241))
             self.render_columns()
 
