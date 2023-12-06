@@ -1,7 +1,7 @@
 
 class Task:
     def __init__(self, title, description, creator, assignee,
-                 creation_date, theoric_completion_date="", completion_date="",
+                 creation_date, theoric_completion_date=None, completion_date="",
                  label="", priority="", status=""):
         self.title = title
         self.description = description

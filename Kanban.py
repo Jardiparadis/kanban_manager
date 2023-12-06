@@ -1,10 +1,9 @@
-import datetime
 import pygame
+from datetime import datetime
 from Column import Column
 from Task import Task
 from tkinter import *
 from tkinter import messagebox
-
 
 COLUMN_WIDTH = 200
 COLUMN_HEADER_HEIGHT = 50
@@ -23,9 +22,12 @@ TASK_TOP_PADDING = 10
 
 class Kanban:
     def __init__(self):
-        task = Task("Title task", "Description task", "moi", "lui", datetime.datetime.now())
+        task = Task("Title task", "Description task", "moi", "lui", datetime.now(),
+                    theoric_completion_date=datetime(year=2010, day=20, month=2))
+        task_bis = Task("Title task", "Description task", "moi", "lui", datetime.now(),
+                    theoric_completion_date=datetime(year=2024, day=20, month=2))
         self.default_columns = [
-            Column("Open", [task, task], pygame.Color(166, 237, 166), pygame.Color(217, 255, 211)),
+            Column("Open", [task, task_bis], pygame.Color(166, 237, 166), pygame.Color(217, 255, 211)),
             Column("Develop", [], pygame.Color(237, 193, 166), pygame.Color(255, 233, 211)),
             Column("Close", [], pygame.Color(237, 166, 166), pygame.Color(255, 211, 211))
         ]
@@ -61,13 +63,19 @@ class Kanban:
 
     def render_tasks(self, tasks, left_pos, top_pos):
         for task in tasks:
+            background_color = pygame.Color(228, 228, 228)
+            if task.theoric_completion_date is not None \
+                    and (datetime.timestamp(task.theoric_completion_date) - datetime.timestamp(datetime.now()) < 0):
+                background_color = pygame.Color(241, 160, 160)
+
             task_rect_left_pos = left_pos + TASK_LEFT_PADDING
             task_rect_top_pos = top_pos + TASK_TOP_PADDING
             task_rect = pygame.Rect(task_rect_left_pos, task_rect_top_pos, TASK_WIDTH, TASK_HEIGHT)
-            pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), task_rect)
+            pygame.draw.rect(self.screen, background_color, task_rect)
             self.tasks_rect.append((task_rect, task))
             self.display_text_in_rectangle(task_rect, task.title, TASK_FONT_SIZE)
             top_pos += TASK_HEIGHT + TASK_SPACES
+
 
     def show_task_in_popup(self, task_rect):
         Tk().wm_withdraw()  # hide main TK window, we only want popup
