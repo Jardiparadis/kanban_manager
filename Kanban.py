@@ -70,6 +70,15 @@ class Kanban:
             self.screen.blit(task_text, task_text_rect)
             top_pos += TASK_HEIGHT + TASK_SPACES
 
+    def show_task_in_popup(self, task_rect):
+        Tk().wm_withdraw()  # hide main TK window, we only want popup
+        popup_content = ("Description: " + task_rect[1].description +
+                         "\nAssignee: " + task_rect[1].assignee +
+                         "\nDate created: " + task_rect[1].creation_date.strftime("%d/%m/%Y") +
+                         "\nDate due: " + task_rect[1].theoric_completion_date +
+                         "\nCreator: " + task_rect[1].creator)
+        messagebox.showinfo(task_rect[1].title, popup_content)
+
     def start_ui(self):
         pygame.init()
         self.screen = pygame.display.set_mode((1280, 720))
@@ -82,13 +91,7 @@ class Kanban:
                     pos = pygame.mouse.get_pos()
                     for task_rect in self.tasks_rect:
                         if pygame.Rect.collidepoint(task_rect[0], pos):
-                            Tk().wm_withdraw()  # to hide the main window
-                            popup_content = ("Description: " + task_rect[1].description +
-                                             "\nAssignee: " + task_rect[1].assignee +
-                                             "\nDate created: " + task_rect[1].creation_date.strftime("%d/%m/%Y") +
-                                             "\nDate due: " + task_rect[1].theoric_completion_date +
-                                             "\nCreator: " + task_rect[1].creator)
-                            messagebox.showinfo(task_rect[1].title, popup_content)
+                            self.show_task_in_popup(task_rect)
 
             self.tasks_rect.clear()
             self.screen.fill(pygame.Color(241, 241, 241))
