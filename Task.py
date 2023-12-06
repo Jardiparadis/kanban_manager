@@ -2,7 +2,7 @@
 class Task:
     def __init__(self, title, description, creator, assignee,
                  creation_date, theoric_completion_date="", completion_date="",
-                 label="", priority="", status=""):
+                label="", priority="", status="", rect=None):
         self.title = title
         self.description = description
         self.creator = creator
@@ -13,8 +13,10 @@ class Task:
         self.label = label
         self.priority = priority
         self.status = status
+        self.rect = rect 
+        self.moving = False # drag&drop
 
-    def update_task(self, title, description, creator, assignee,
+def update_task(self, title, description, creator, assignee,
                     creation_date, theoric_completion_date="", completion_date="",
                     label="", priority="", status=""):
         self.title = title
