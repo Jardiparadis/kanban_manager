@@ -95,15 +95,6 @@ class Kanban:
                          "\nDate due: " + task_rect[1].theoric_completion_date +
                          "\nCreator: " + task_rect[1].creator)
         messagebox.showinfo(task_rect[1].title, popup_content)
-    
-    """
-    Get the column index of a task
-    """
-    def get_column_index(self, task):
-        for index, col in enumerate(self.default_columns):
-            if task in col.task_list:
-                return index
-        return index
 
     # Drag & Drop
     def handle_mouse_event(self, event):
@@ -132,7 +123,7 @@ class Kanban:
                 task.moving = True  
 
     def hold_drag_and_drop(self, event):
-        if self.moving_task_index != None:
+        if self.moving_task_index is not None:
             self.tasks[self.moving_task_index].rect.move_ip(event.rel)
             self.print_moving_task()
 
@@ -148,10 +139,6 @@ class Kanban:
             self.tasks[self.moving_task_index].moving = False
             self.moving_task_index = None
 
-    def print_moving_task(self):
-        if self.moving_task_index != None:
-            pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), self.tasks[self.moving_task_index].rect)
-
     """
     Get the column index of a task
     """
@@ -161,38 +148,8 @@ class Kanban:
                 return index
         return index
 
-    # Drag & Drop
-    def handleMouseEvent(self, event):
-        # clic gauche
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                self.list_all_tasks() # fill self.tasks with all task
-                for num, task in enumerate(self.tasks):
-                    if task.rect.collidepoint(event.pos):
-                        self.moving_task_index = num
-                        task.moving = True   
-
-        # relachement du clic
-        if event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1:
-                for column in self.default_columns:
-                    if column.rect.collidepoint(event.pos):
-                        # On supprime notre tache de l'ancienne colonne
-                        old_column_index =  self.get_column_index(self.tasks[self.moving_task_index])
-                        self.default_columns[old_column_index].task_list.remove(self.tasks[self.moving_task_index])
-                        # Et on la rajoute a la nouvelle
-                        column.task_list.append(self.tasks[self.moving_task_index])
-                self.tasks[self.moving_task_index].moving = False
-                self.index_moving_task = None
-
-        # souris bouge
-        if event.type == pygame.MOUSEMOTION:
-            if self.moving_task_index != None:
-                self.tasks[self.moving_task_index].rect.move_ip(event.rel)
-                self.print_moving_task()
-
     def print_moving_task(self):
-        if self.moving_task_index != None:
+        if self.moving_task_index is not None:
             pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), self.tasks[self.moving_task_index].rect)
 
     def start_ui(self):
