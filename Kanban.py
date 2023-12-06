@@ -1,18 +1,17 @@
-import datetime
 import pygame
+from datetime import datetime
 from Column import Column
-from enum import Enum
-from tkinter import *
 from Task import *
-import datetime
+from tkinter import *
 from tkinter import messagebox
+from enum import Enum
 
 COLUMN_WIDTH = 200
 COLUMN_HEADER_HEIGHT = 50
 COLUMN_BODY_HEIGHT = 400
 COLUMN_SPACES = 40
 COLUMN_HEADER_FONT_SIZE = 24
-COLUMN_BOTTOM_PADDING = 20
+COLUMN_BOTTOM_PADDING = 40
 
 TASK_WIDTH = 180
 TASK_HEIGHT = 80
@@ -20,14 +19,28 @@ TASK_SPACES = 10
 TASK_FONT_SIZE = 22
 TASK_LEFT_PADDING = 10
 TASK_TOP_PADDING = 10
+TASK_BACKGROUND_COLOR = pygame.Color(228, 228, 228)
+TASK_LATE_BACKGROUND_COLOR = pygame.Color(241, 160, 160)
+
+class Priority(Enum):
+    Low = 1
+    Medium = 2
+    High = 3
+
+class Status(Enum):
+    Open = 1
+    Develop = 2
+    Waiting = 3
+    Closed = 4
+
 
 class Kanban:
 
     def __init__(self):
-        default_task = Task("Title", "desc", "creator", "assignee", datetime.datetime.now())
-        default_task2 = Task("Title2", "desc2", "creator2", "assignee2", datetime.datetime.now())
-        default_task3 = Task("Title3", "desc3", "creator3", "assignee3", datetime.datetime.now())
-        default_task4 = Task("Title4", "desc4", "creator4", "assignee4", datetime.datetime.now())
+        default_task = Task("Title", "desc", "creator", "assignee", datetime.now(), theoric_completion_date=datetime(year=2010, day=20, month=2))
+        default_task2 = Task("Title2", "desc2", "creator2", "assignee2", datetime.now())
+        default_task3 = Task("Title3", "desc3", "creator3", "assignee3", datetime.now())
+        default_task4 = Task("Title4", "desc4", "creator4", "assignee4", datetime.now())
         
         self.default_columns = [
             Column("Open", [default_task], pygame.Color(166, 237, 166), pygame.Color(217, 255, 211)),
@@ -36,13 +49,14 @@ class Kanban:
         ]
      
         self.screen = None
-        self.column_left_start_pos = 40
-        self.column_top_start_pos = 40
+        self.column_left_start_pos = 20
+        self.column_top_start_pos = 20
         self.tasks_rect: list[tuple[pygame.Rect, Task]] = []
-        self.popup = None
         self.tasks = [] # list of ALL tasks
         self.moving_task_index = None
         self.old_column_index = None
+        self.popup = None
+
 
     def save_changes(self, title, description, creator, assignee,
                  theoric_completion_date, completion_date, label):
@@ -51,7 +65,7 @@ class Kanban:
         description=description,
         creator=creator,
         assignee=assignee,
-        creation_date=datetime.datetime.now(),
+        creation_date=datetime.now(),
         theoric_completion_date=theoric_completion_date,
         completion_date=completion_date,
         label=label
@@ -84,10 +98,6 @@ class Kanban:
         assignee_entry = Entry(self.popup)
         assignee_entry.grid(row=3, column=1)
 
-        Label(self.popup, text="Theoric Completion Date").grid(row=4, column=0)
-        theoric_completion_date_entry = Entry(self.popup)
-        theoric_completion_date_entry.grid(row=4, column=1)
-
         Label(self.popup, text="Completion date").grid(row=5, column=0)
         completion_date_entry = Entry(self.popup)
         completion_date_entry.grid(row=5, column=1)
@@ -102,7 +112,7 @@ class Kanban:
             new_description = description_entry.get()
             new_creator = creator_entry.get()
             new_assignee = assignee_entry.get()
-            new_theoric_completion_date = theoric_completion_date_entry.get()
+            new_theoric_completion_date = datetime.now()
             new_completion_date = completion_date_entry.get()
             new_label = label_entry.get()
 
@@ -125,13 +135,13 @@ class Kanban:
             )
         )
         self.screen.blit(rendered_text, rendered_text_rect)
-
+ 
     def list_all_tasks(self):
         for column in self.default_columns:
             for task in column.task_list:
                 self.tasks.append(task)
         return self.tasks
-    
+
     def render_columns(self):
         left_pos = self.column_left_start_pos
         top_pos = self.column_top_start_pos
@@ -148,14 +158,15 @@ class Kanban:
 
     def render_tasks(self, tasks, left_pos, top_pos):
         for task in tasks:
+            background_color = self.get_task_color(task)
             task_rect_left_pos = left_pos + TASK_LEFT_PADDING
             task_rect_top_pos = top_pos + TASK_TOP_PADDING
             task_rect = pygame.Rect(task_rect_left_pos, task_rect_top_pos, TASK_WIDTH, TASK_HEIGHT)
-            pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), task_rect)
+            pygame.draw.rect(self.screen, background_color, task_rect)
             self.tasks_rect.append((task_rect, task))
             self.display_text_in_rectangle(task_rect, task.title, TASK_FONT_SIZE)
             top_pos += TASK_HEIGHT + TASK_SPACES
-            if task.moving == False:
+            if task.moving is False:
                 task.rect = task_rect
 
     def show_task_in_popup(self, task_rect):
@@ -219,9 +230,19 @@ class Kanban:
                 return index
         return index
 
+    def get_task_color(self, task):
+        background_color = pygame.Color(228, 228, 228)
+        if task.theoric_completion_date is not None \
+                and (datetime.timestamp(task.theoric_completion_date) - datetime.timestamp(datetime.now()) < 0):
+            background_color = pygame.Color(241, 160, 160)
+        return background_color
+
     def print_moving_task(self):
         if self.moving_task_index is not None:
-            pygame.draw.rect(self.screen, pygame.Color(228, 228, 228), self.tasks[self.moving_task_index].rect)
+            current_task = self.tasks[self.moving_task_index]
+            background_color = self.get_task_color(current_task)
+            pygame.draw.rect(self.screen, background_color, current_task.rect)
+            self.display_text_in_rectangle(self.tasks[self.moving_task_index].rect, current_task.title, TASK_FONT_SIZE)
 
     def start_ui(self):
         pygame.init()
@@ -259,4 +280,3 @@ class Kanban:
 
             pygame.display.flip()
             clock.tick(60)
-

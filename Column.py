@@ -1,4 +1,3 @@
-
 class Column:
     """
     color : the color of the column, by default white 
