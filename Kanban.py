@@ -177,7 +177,8 @@ class Kanban:
             self.tasks_rect.clear()
             
             self.screen.fill(pygame.Color(241, 241, 241))
-            self.print_moving_task()
             self.render_columns()
+            self.print_moving_task()
+
             pygame.display.flip()
             clock.tick(60)
